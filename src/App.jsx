@@ -10,12 +10,17 @@ export default function App() {
   const [todos, setTodos] = useState([])
   const [input, setInput] = useState('')
   const [filter, setFilter] = useState('all')
+  const [error, setError] = useState('')
 
   const addTodo = () => {
     const text = input.trim()
-    if (!text) return
+    if (!text) {
+      setError('タスクを入力してください')
+      return
+    }
     setTodos([...todos, { id: Date.now(), text, completed: false }])
     setInput('')
+    setError('')
   }
 
   const toggleTodo = (id) => {
@@ -50,10 +55,12 @@ export default function App() {
           <input
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => { setInput(e.target.value); setError('') }}
             onKeyDown={(e) => e.key === 'Enter' && addTodo()}
             placeholder="タスクを入力..."
-            className="flex-1 px-4 py-3 rounded-xl border border-indigo-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+            className={`flex-1 px-4 py-3 rounded-xl border shadow-sm focus:outline-none focus:ring-2 bg-white ${
+              error ? 'border-red-400 focus:ring-red-400' : 'border-indigo-200 focus:ring-indigo-400'
+            }`}
           />
           <button
             onClick={addTodo}
@@ -62,6 +69,9 @@ export default function App() {
             追加
           </button>
         </div>
+        {error && (
+          <p className="text-red-500 text-xs mb-4 px-1">{error}</p>
+        )}
 
         {/* フィルター */}
         <div className="flex gap-2 mb-4">
