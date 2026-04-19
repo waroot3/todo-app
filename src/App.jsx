@@ -1,47 +1,64 @@
-import { useState } from 'react'
+import { useState, useEffect } from "react";
 
 const FILTERS = [
-  { label: 'すべて', value: 'all' },
-  { label: '未完了', value: 'active' },
-  { label: '完了', value: 'completed' },
-]
+  { label: "すべて", value: "all" },
+  { label: "未完了", value: "active" },
+  { label: "完了", value: "completed" },
+];
 
 export default function App() {
-  const [todos, setTodos] = useState([])
-  const [input, setInput] = useState('')
-  const [filter, setFilter] = useState('all')
-  const [error, setError] = useState('')
+  const [todos, setTodos] = useState(() => {
+    try {
+      const saved = localStorage.getItem("todos");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [input, setInput] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [error, setError] = useState("");
+
+  const MAX_LENGTH = 200;
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
 
   const addTodo = () => {
-    const text = input.trim()
+    const text = input.trim();
     if (!text) {
-      setError('タスクを入力してください')
-      return
+      setError("タスクを入力してください");
+      return;
     }
-    setTodos([...todos, { id: Date.now(), text, completed: false }])
-    setInput('')
-    setError('')
-  }
+    if (text.length > MAX_LENGTH) {
+      setError(`タスクは${MAX_LENGTH}文字以内で入力してください`);
+      return;
+    }
+    setTodos((prev) => [...prev, { id: crypto.randomUUID(), text, completed: false }]);
+    setInput("");
+    setError("");
+  };
 
   const toggleTodo = (id) => {
-    setTodos(todos.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)))
-  }
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
+  };
 
   const deleteTodo = (id) => {
-    setTodos(todos.filter((t) => t.id !== id))
-  }
+    setTodos((prev) => prev.filter((t) => t.id !== id));
+  };
 
   const clearCompleted = () => {
-    setTodos(todos.filter((t) => !t.completed))
-  }
+    setTodos((prev) => prev.filter((t) => !t.completed));
+  };
 
   const filteredTodos = todos.filter((t) => {
-    if (filter === 'active') return !t.completed
-    if (filter === 'completed') return t.completed
-    return true
-  })
+    if (filter === "active") return !t.completed;
+    if (filter === "completed") return t.completed;
+    return true;
+  });
 
-  const activeCount = todos.filter((t) => !t.completed).length
+  const activeCount = todos.filter((t) => !t.completed).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 flex items-start justify-center pt-16 px-4">
@@ -55,11 +72,12 @@ export default function App() {
           <input
             type="text"
             value={input}
-            onChange={(e) => { setInput(e.target.value); setError('') }}
-            onKeyDown={(e) => e.key === 'Enter' && addTodo()}
+            onChange={(e) => { setInput(e.target.value); setError(""); }}
+            onKeyDown={(e) => e.key === "Enter" && addTodo()}
             placeholder="タスクを入力..."
+            maxLength={MAX_LENGTH}
             className={`flex-1 px-4 py-3 rounded-xl border shadow-sm focus:outline-none focus:ring-2 bg-white ${
-              error ? 'border-red-400 focus:ring-red-400' : 'border-indigo-200 focus:ring-indigo-400'
+              error ? "border-red-400 focus:ring-red-400" : "border-indigo-200 focus:ring-indigo-400"
             }`}
           />
           <button
@@ -81,8 +99,8 @@ export default function App() {
               onClick={() => setFilter(value)}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === value
-                  ? 'bg-indigo-600 text-white shadow'
-                  : 'bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50'
+                  ? "bg-indigo-600 text-white shadow"
+                  : "bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50"
               }`}
             >
               {label}
@@ -100,7 +118,7 @@ export default function App() {
                 <li
                   key={todo.id}
                   className={`flex items-center gap-3 px-4 py-3 ${
-                    i !== filteredTodos.length - 1 ? 'border-b border-gray-100' : ''
+                    i !== filteredTodos.length - 1 ? "border-b border-gray-100" : ""
                   }`}
                 >
                   <input
@@ -111,7 +129,7 @@ export default function App() {
                   />
                   <span
                     className={`flex-1 text-sm ${
-                      todo.completed ? 'line-through text-gray-400' : 'text-gray-700'
+                      todo.completed ? "line-through text-gray-400" : "text-gray-700"
                     }`}
                   >
                     {todo.text}
@@ -145,5 +163,5 @@ export default function App() {
         )}
       </div>
     </div>
-  )
+  );
 }
